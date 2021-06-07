@@ -2,6 +2,7 @@ import logging
 import os
 from datetime import datetime
 from glob import glob
+import numpy as np;
 
 from dataingestion.nc import clip_by_shp, create_derived
 from layermanager.models import Layer, LayerGroup
@@ -41,6 +42,7 @@ def process_layers(path):
                     file = file[0]
                     logger.info(f"Processing layer {layer.name}...")
                     process_layer(file, folder, layer)
+            break
 
         for layer_group in layer_groups:
             file_match = layer_group.file_match
@@ -69,6 +71,10 @@ def process_layer(file_path, folder, layer, is_group=False):
 
         # clip shapefile
     ds = clip_by_shp(file_path)
+
+    if layer.time_interval == 'week':
+        t = np.datetime64(date)
+        ds = ds.expand_dims(time=[t])
 
     ds.to_netcdf(new_file_path)
     ds.close()
