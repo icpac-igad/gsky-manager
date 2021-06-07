@@ -1,4 +1,5 @@
 import json
+# import docker
 
 from django.conf import settings
 
@@ -26,3 +27,19 @@ def update_gsky_config(*args, **kwargs):
 
 def rgba_dict_to_hex(rgba):
     return '#{:02x}{:02x}{:02x}'.format(rgba['R'], rgba['G'], rgba['B'], rgba['A'])
+
+# def ingest_data(crawl_dir):
+#     client = docker.from_env()
+#     container = client.containers.get('gsky_server')
+#     result = container.exec_run(f"/ingest_data {crawl_dir}")
+#     print(result)
+
+# def reload_ows_config():
+#     client = docker.from_env()
+#     container = client.containers.get('gsky_server')
+#     result = container.exec_run("/reload_ows_config.sh")
+#     return result
+
+
+
+

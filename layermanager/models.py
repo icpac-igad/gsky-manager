@@ -82,7 +82,7 @@ class Layer(models.Model):
         return {
             "name": self.name,
             "title": self.title,
-            "data_source": self.collection.container_full_path,
+            "data_source": self.container_full_path,
             "time_generator": self.time_generator,
             "rgb_products": [self.variable],
             "palette": self.color_scale.palette,
@@ -152,7 +152,7 @@ class ColorScale(ClusterableModel):
             v = self.get_color_for_index(i, values, self.other)
             colors.append(v)
 
-        return {"interpolate": self.interpolate, "colors": colors}
+        return {"interpolate": self.interpolate, "colours": colors}
 
     @property
     def legend(self):
