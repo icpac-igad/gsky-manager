@@ -57,6 +57,8 @@ RUN mkdir $APP_HOME
 
 WORKDIR $APP_HOME
 
+RUN touch app.log && chown app:app app.log
+
 # copy entrypoint.sh
 COPY ./entrypoint.sh $APP_HOME
 

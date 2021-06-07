@@ -12,7 +12,7 @@ ALLOWED_HOSTS = ['*']
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 CONSOLE_LOGGING_FORMAT = '%(asctime)s %(levelname)-8s %(name)s.%(funcName)s: %(message)s'
-CONSOLE_LOGGING_FILE_LOCATION = os.path.join(BASE_DIR, 'django-eacw.log')
+CONSOLE_LOGGING_FILE_LOCATION = os.path.join(BASE_DIR, 'app.log')
 
 LOGGING = {
     'version': 1,
