@@ -34,6 +34,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 INSTALLED_APPS = [
     'home',
     'layermanager',
+    'dataingestion',
 
     'wagtail.contrib.forms',
     'wagtail.contrib.redirects',
@@ -172,3 +173,5 @@ GSKY_CONFIG = {
 
 HOST_DATA_ROOT_PATH = env.str("HOST_DATA_ROOT_PATH")
 CONTAINER_DATA_ROOT_PATH = env.str("CONTAINER_DATA_ROOT_PATH")
+
+SHP_FILES_ROOT = os.path.join(BASE_DIR, 'shapefiles')

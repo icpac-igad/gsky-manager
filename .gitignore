@@ -179,3 +179,5 @@ dmypy.json
 .DS_Store
 
 /data
+/fixtures
+/shapefiles

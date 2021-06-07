@@ -1,16 +1,16 @@
+import os
 import uuid
 
 from condensedinlinepanel.edit_handlers import CondensedInlinePanel
 from django.conf import settings
 from django.core.validators import MaxValueValidator
 from django.db import models
+from django.db.models.signals import post_save
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
 from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel
 from wagtail.core.models import Orderable
 from wagtail.snippets.models import register_snippet
-import os
-from django.db.models.signals import post_save
 
 from layermanager.utils import rgba_dict_to_hex, update_gsky_config
 
@@ -47,19 +47,44 @@ class GeoCollection(models.Model):
 
 
 @register_snippet
-class TimeInterval(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    date_format = models.CharField(max_length=100)
+class LayerGroup(ClusterableModel):
+    name = models.CharField(max_length=100)
+    file_match = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
 
+    panels = [
+        FieldPanel('name'),
+        FieldPanel('file_match'),
+        CondensedInlinePanel('layers', heading="Derived Layers", label="Derived Layer"),
+    ]
+
+
+class LayerGroupLayer(Orderable):
+    parent = ParentalKey("LayerGroup", related_name='layers')
+    is_default = models.BooleanField(default=False)
+    layer = models.ForeignKey("Layer", on_delete=models.CASCADE, related_name="layer_group")
+
+    def __str__(self):
+        return self.layer.title
+
 
 @register_snippet
-class Layer(models.Model):
+class Layer(ClusterableModel):
     TIME_GENERATOR_CHOICES = (
         ('mas', 'MAS'),
     )
+
+    TIME_INTERVAL_CHOICES = (
+        ("day", "Daily"),
+        ("week", "Weekly"),
+        ("dekad", "Dekadal"),
+        ("month", "Monthly"),
+        ("season", "Seasonal"),
+        ("year", "Yearly"),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255, help_text="Layer Title")
     name = models.CharField(max_length=100, help_text="Layer identifier")
@@ -67,12 +92,30 @@ class Layer(models.Model):
     collection = models.ForeignKey('GeoCollection', on_delete=models.PROTECT, related_name='layers')
     time_generator = models.CharField(max_length=100, default='mas', choices=TIME_GENERATOR_CHOICES)
     color_scale = models.ForeignKey('ColorScale', on_delete=models.PROTECT)
-    time_interval = models.ForeignKey('TimeInterval', on_delete=models.PROTECT, null=True, blank=True)
+    time_interval = models.CharField(max_length=100, choices=TIME_INTERVAL_CHOICES, null=True, blank=True, )
     offset_value = models.FloatField(default=0)
     scale_value = models.FloatField(default=1)
     clip_value = models.FloatField()
     active = models.BooleanField(default=True)
-    sub_path = models.CharField(max_length=100, unique=True)
+    sub_path = models.CharField(max_length=100)
+    file_match = models.CharField(max_length=100, null=True, blank=True)
+
+    panels = [
+        FieldPanel('title'),
+        FieldPanel('name'),
+        FieldPanel('variable'),
+        FieldPanel('collection'),
+        FieldPanel('time_generator'),
+        FieldPanel('color_scale'),
+        FieldPanel('time_interval'),
+        FieldPanel('offset_value'),
+        FieldPanel('scale_value'),
+        FieldPanel('clip_value'),
+        FieldPanel('active'),
+        FieldPanel('sub_path'),
+        FieldPanel('file_match'),
+        CondensedInlinePanel('derived_layers', heading="Derived Layers", label="Derived Layer"),
+    ]
 
     def __str__(self):
         return f"{self.title} - {self.collection.name}"
@@ -108,6 +151,20 @@ class Layer(models.Model):
         if not os.path.exists(self.host_full_path):
             os.makedirs(self.host_full_path)
         super(Layer, self).save(*args, **kwargs)
+
+
+class DerivedLayer(Orderable):
+    METHODS_CHOICES = (
+        ('sum', 'Sum'),
+        ('mean', 'Mean'),
+    )
+    parent = ParentalKey(Layer, related_name='derived_layers')
+    layer = models.ForeignKey(Layer, on_delete=models.CASCADE)
+    method = models.CharField(choices=METHODS_CHOICES, max_length=100, )
+    dimension = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.layer.title
 
 
 @register_snippet
