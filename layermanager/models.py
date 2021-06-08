@@ -10,6 +10,7 @@ from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
 from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel
 from wagtail.core.models import Orderable
+from wagtail.core.utils import safe_snake_case
 from wagtail.snippets.models import register_snippet
 
 from layermanager.utils import rgba_dict_to_hex, update_gsky_config
@@ -99,6 +100,7 @@ class Layer(ClusterableModel):
     active = models.BooleanField(default=True)
     sub_path = models.CharField(max_length=100)
     file_match = models.CharField(max_length=100, null=True, blank=True)
+    shard_name = models.CharField(max_length=100)
 
     panels = [
         FieldPanel('title'),
@@ -148,6 +150,9 @@ class Layer(ClusterableModel):
         return f"{self.collection.container_full_path}/{self.sub_path}"
 
     def save(self, *args, **kwargs):
+        # save shard name
+        self.shard_name = safe_snake_case(self.name)
+
         if not os.path.exists(self.host_full_path):
             os.makedirs(self.host_full_path)
         super(Layer, self).save(*args, **kwargs)
@@ -223,11 +228,15 @@ class ColorScale(ClusterableModel):
             if i == 0:
                 if index < value['threshold']:
                     return value['color']
+                # we have only one value in the color list
+                if len(values) == 1:
+                    return other
                 # no match continue
                 continue
             # if no the first one, do comparison using also the prev value
             if value.get('prev'):
                 if value['prev'] <= index < value['threshold']:
+                    print("second")
                     return value['color']
                 # no match return the value for everything else
                 if i == len(values) - 1:
