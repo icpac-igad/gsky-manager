@@ -64,6 +64,8 @@ COPY ./entrypoint.sh $APP_HOME
 
 COPY --chown=app:app . $APP_HOME
 
+RUN usermod -u 1000 app
+
 RUN mkdir -p /home/app/web/static && chown -R app:app /home/app/web/static
 RUN mkdir -p /home/app/web/media && chown -R app:app /home/app/web/media
 

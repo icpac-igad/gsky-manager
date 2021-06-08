@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import logging
+import codecs
 
 import requests
 from django.conf import settings
@@ -38,7 +39,7 @@ class Command(BaseCommand):
                 data=payload, headers={})
 
             prepped = request.prepare()
-            signature = hmac.new(WEBHOOK_SECRET, prepped.body, digestmod=hashlib.sha512)
+            signature = hmac.new(codecs.encode(WEBHOOK_SECRET), prepped.body, digestmod=hashlib.sha512)
             prepped.headers['X-Gsky-Signature'] = signature.hexdigest()
 
             with requests.Session() as session:
