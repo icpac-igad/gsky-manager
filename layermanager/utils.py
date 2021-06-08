@@ -34,7 +34,7 @@ def update_gsky_config(*args, **kwargs):
     for l_group in layer_groups:
         l_group_layers = l_group.layers.filter(layer__active=True)
         if l_group_layers:
-            context['layers'].append(l_group_layers[0])
+            context['layers'].append(l_group_layers[0].layer)
 
     # handle layer
     for layer in layers:
