@@ -25,7 +25,7 @@ def get_date_from_path(path, d_format):
 
 
 def process_layers(path):
-    layers = Layer.objects.filter(layer_group__isnull=True)
+    layers = Layer.objects.filter(layer_group__isnull=True, active=True)
 
     layer_groups = LayerGroup.objects.all()
 
@@ -45,7 +45,7 @@ def process_layers(path):
 
         for layer_group in layer_groups:
             file_match = layer_group.file_match
-            group_layers = layer_group.layers.all()
+            group_layers = layer_group.layers.filter(layer__active=True)
             # match file
             file = glob(f"{folder}/**/{file_match}.nc", recursive=True)
 
@@ -96,7 +96,7 @@ def process_layer(file_path, folder, layer, is_group=False):
 
             # save to netcdf
             d_ds.to_netcdf(f"{derived_layer.host_full_path}/{derived_layer.file_match}_{date_str}.nc",
-                            encoding={derived_layer.variable:{"_FillValue":-9999.0,"grid_mapping":"spatial_ref"}})
+                           encoding={derived_layer.variable: {"_FillValue": -9999.0, "grid_mapping": "spatial_ref"}})
             d_ds.close()
             logger.info("Done Processing Derived layer")
 
