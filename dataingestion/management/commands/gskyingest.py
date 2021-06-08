@@ -26,7 +26,7 @@ class Command(BaseCommand):
                 data=payload, headers={})
 
             prepped = request.prepare()
-            signature = hmac.new(codecs.encode(WEBHOOK_SECRET), prepped.body, digestmod=hashlib.sha256)
+            signature = hmac.new(codecs.encode(WEBHOOK_SECRET), codecs.encode(prepped.body), digestmod=hashlib.sha256)
             prepped.headers['X-Gsky-Signature'] = signature.hexdigest()
 
             with requests.Session() as session:
