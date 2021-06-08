@@ -42,7 +42,6 @@ def process_layers(path):
                     file = file[0]
                     logger.info(f"Processing layer {layer.name}...")
                     process_layer(file, folder, layer)
-            break
 
         for layer_group in layer_groups:
             file_match = layer_group.file_match
@@ -90,8 +89,14 @@ def process_layer(file_path, folder, layer, is_group=False):
             d_ds = d_ds.rename({layer.variable: derived_layer.variable})
             # clip again
             d_ds = clip_by_shp(d_ds)
+
+            if derived_layer.time_interval == 'week':
+                t = np.datetime64(date)
+                d_ds = d_ds.expand_dims(time=[t])
+
             # save to netcdf
-            d_ds.to_netcdf(f"{derived_layer.host_full_path}/{derived_layer.file_match}_{date_str}.nc")
+            d_ds.to_netcdf(f"{derived_layer.host_full_path}/{derived_layer.file_match}_{date_str}.nc",
+                            encoding={derived_layer.variable:{"_FillValue":-9999.0}})
             d_ds.close()
             logger.info("Done Processing Derived layer")
 

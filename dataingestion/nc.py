@@ -18,14 +18,16 @@ def clip_by_shp(dataset):
 
     del ds.x.attrs['axis']
     del ds.x.attrs['long_name']
+    del ds.x.attrs['standard_name']
     del ds.x.attrs['units']
 
     del ds.y.attrs['axis']
     del ds.y.attrs['long_name']
+    del ds.y.attrs['standard_name']
     del ds.y.attrs['units']
 
-    ds.x.attrs['units'] = "degrees_east"
-    ds.y.attrs['units'] = "degrees_north"
+    # ds.x.attrs['units'] = "degrees_east"
+    # ds.y.attrs['units'] = "degrees_north"
 
     return ds
 
@@ -34,10 +36,11 @@ def write_projection(ds):
     if not isinstance(ds, xarray.Dataset):
         ds = rxr.open_rasterio(ds, decode_times=False)
 
-    ds.rio.write_crs("epsg:4326", inplace=True)
+    ds = ds.rio.write_crs("epsg:4326", inplace=True)
 
-    ds.x.attrs['units'] = "degrees_east"
-    ds.y.attrs['units'] = "degrees_north"
+
+    # ds.x.attrs['units'] = "degrees_east"
+    # ds.y.attrs['units'] = "degrees_north"
 
     # rioxarray has issues with assigning multiple units for multi-temporal data.
     # we only need one
