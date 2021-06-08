@@ -88,7 +88,7 @@ class Layer(ClusterableModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255, help_text="Layer Title")
-    name = models.CharField(max_length=100, help_text="Layer identifier")
+    name = models.CharField(max_length=100, help_text="Layer identifier",unique=True)
     variable = models.CharField(unique=True, max_length=100, help_text="Layer netcdf variable")
     collection = models.ForeignKey('GeoCollection', on_delete=models.PROTECT, related_name='layers')
     time_generator = models.CharField(max_length=100, default='mas', choices=TIME_GENERATOR_CHOICES)
