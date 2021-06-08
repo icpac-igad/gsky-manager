@@ -235,7 +235,6 @@ class ColorScale(ClusterableModel):
 
     panels = [
         FieldPanel('title'),
-        FieldPanel('interpolate'),
         CondensedInlinePanel('color_values', heading="Color Values", label="Color Value"),
         MultiFieldPanel([
             FieldPanel('r'),
@@ -243,6 +242,7 @@ class ColorScale(ClusterableModel):
             FieldPanel('b'),
             FieldPanel('a'),
         ], "Other"),
+        FieldPanel('interpolate'),
     ]
 
     def __str__(self):

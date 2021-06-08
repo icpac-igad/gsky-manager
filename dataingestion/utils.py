@@ -96,7 +96,7 @@ def process_layer(file_path, folder, layer, is_group=False):
 
             # save to netcdf
             d_ds.to_netcdf(f"{derived_layer.host_full_path}/{derived_layer.file_match}_{date_str}.nc",
-                            encoding={derived_layer.variable:{"_FillValue":-9999.0}})
+                            encoding={derived_layer.variable:{"_FillValue":-9999.0,"grid_mapping":"spatial_ref"}})
             d_ds.close()
             logger.info("Done Processing Derived layer")
 
