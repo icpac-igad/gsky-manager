@@ -12,14 +12,46 @@ def update_gsky_config(*args, **kwargs):
     layers = Layer.objects.filter(active=True)
 
     config = {
-
         "service_config": {
             "ows_hostname": GSKY_CONFIG["GSKY_OWS_HOST_NAME"],
             "mas_address": GSKY_CONFIG["GSKY_MAS_ADDRESS"],
             "worker_nodes": GSKY_CONFIG["GSKY_WORKER_NODES"],
         },
-        "layers": list(map(lambda layer: layer.gsky_layer, layers))
+        "layers": [],
+        "processes": []
     }
+
+    geometry_drill_process = {
+        "data_sources": [],
+        "identifier": "geometryDrill",
+        "title": "Geometry Drill",
+        "abstract": "",
+        "max_area": 10000,
+        "complex_data": [
+            {
+                "identifier": "geometry",
+                "title": "Geometry",
+                "abstract": "",
+                "mime_type": "application/vnd.geo+json",
+                "schema": "http://geojson.org/geojson-spec.html",
+                "min_occurs": 1
+            }
+        ],
+        "literal_data": [
+            {
+                "identifier": "geometry_id",
+                "title": "Geometry ID"
+            }
+        ]
+    }
+
+    for layer in layers:
+        config['layers'].append(layer.gsky_layer)
+        if layer.enable_time_series:
+            geometry_drill_process['data_sources'].append(layer.gsky_process)
+
+    if geometry_drill_process['data_sources']:
+        config['processes'].append(geometry_drill_process)
 
     with open(GSKY_CONFIG['GSKY_CONFIG_FILE'], 'w') as fp:
         config_str = json.dumps(config)

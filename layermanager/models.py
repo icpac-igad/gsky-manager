@@ -101,6 +101,7 @@ class Layer(ClusterableModel):
     sub_path = models.CharField(max_length=100)
     file_match = models.CharField(max_length=100, null=True, blank=True)
     shard_name = models.CharField(max_length=100)
+    enable_time_series = models.BooleanField(default=False)
 
     panels = [
         FieldPanel('title'),
@@ -116,6 +117,7 @@ class Layer(ClusterableModel):
         FieldPanel('active'),
         FieldPanel('sub_path'),
         FieldPanel('file_match'),
+        FieldPanel('enable_time_series'),
         CondensedInlinePanel('derived_layers', heading="Derived Layers", label="Derived Layer"),
     ]
 
@@ -134,6 +136,14 @@ class Layer(ClusterableModel):
             "offset_value": self.offset_value,
             "scale_value": self.scale_value,
             "clip_value": self.clip_value
+        }
+
+    @property
+    def gsky_process(self):
+        return {
+            "data_source": self.container_full_path,
+            "rgb_products": [self.variable],
+            "metadata_url": "/gsky/share/gsky/templates/WPS_Outputs/geometryDrill/geoglam_fc.tpl"
         }
 
     @property
