@@ -21,37 +21,32 @@ def update_gsky_config(*args, **kwargs):
         "processes": []
     }
 
-    geometry_drill_process = {
-        "data_sources": [],
-        "identifier": "geometryDrill",
-        "title": "Geometry Drill",
-        "abstract": "",
-        "max_area": 10000,
-        "complex_data": [
-            {
-                "identifier": "geometry",
-                "title": "Geometry",
-                "abstract": "",
-                "mime_type": "application/vnd.geo+json",
-                "schema": "http://geojson.org/geojson-spec.html",
-                "min_occurs": 1
-            }
-        ],
-        "literal_data": [
-            {
-                "identifier": "geometry_id",
-                "title": "Geometry ID"
-            }
-        ]
-    }
-
     for layer in layers:
         config['layers'].append(layer.gsky_layer)
         if layer.enable_time_series:
-            geometry_drill_process['data_sources'].append(layer.gsky_process)
-
-    if geometry_drill_process['data_sources']:
-        config['processes'].append(geometry_drill_process)
+            config['processes'].append({
+                "data_sources": [layer.gsky_process],
+                "identifier": f"{layer.name}GeometryDrill",
+                "title": f"{layer.title} Geometry Drill",
+                "abstract": "",
+                "max_area": 10000,
+                "complex_data": [
+                    {
+                        "identifier": "geometry",
+                        "title": "Geometry",
+                        "abstract": "",
+                        "mime_type": "application/vnd.geo+json",
+                        "schema": "http://geojson.org/geojson-spec.html",
+                        "min_occurs": 1
+                    }
+                ],
+                "literal_data": [
+                    {
+                        "identifier": "geometry_id",
+                        "title": "Geometry ID"
+                    }
+                ]
+            })
 
     with open(GSKY_CONFIG['GSKY_CONFIG_FILE'], 'w') as fp:
         config_str = json.dumps(config)
