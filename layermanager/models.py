@@ -21,6 +21,8 @@ CONTAINER_DATA_ROOT_PATH = getattr(settings, "CONTAINER_DATA_ROOT_PATH")
 if not HOST_DATA_ROOT_PATH and os.path.isabs(HOST_DATA_ROOT_PATH):
     HOST_DATA_ROOT_PATH = os.path.abspath(HOST_DATA_ROOT_PATH)
 
+GSKY_CONFIG = getattr(settings, "GSKY_CONFIG")
+
 
 @register_snippet
 class GeoCollection(models.Model):
@@ -140,10 +142,11 @@ class Layer(ClusterableModel):
 
     @property
     def gsky_process(self):
+        gsky_wps_template_file = os.path.join(GSKY_CONFIG['GSKY_WPS_TEMPLATES_CONTAINER_PATH'], f"{self.name}.tpl")
         return {
             "data_source": self.container_full_path,
             "rgb_products": [self.variable],
-            "metadata_url": "/gsky/share/gsky/templates/WPS_Outputs/geometryDrill/geoglam_fc.tpl"
+            "metadata_url": f"{gsky_wps_template_file}"
         }
 
     @property

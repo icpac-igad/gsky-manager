@@ -1,5 +1,6 @@
 import json
 # import docker
+import os
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -48,6 +49,16 @@ def update_gsky_config(*args, **kwargs):
                 ]
             })
 
+            wps_template_str = render_to_string("wps_template.tpl", {"layer": layer})
+
+            gsky_wps_templates_host_path = os.path.abspath(GSKY_CONFIG['GSKY_WPS_TEMPLATES_HOST_PATH'])
+
+            if not os.path.exists(gsky_wps_templates_host_path):
+                os.makedirs(gsky_wps_templates_host_path)
+
+            with open(f"{gsky_wps_templates_host_path}/{layer.name}.tpl", 'w') as wps_t:
+                wps_t.write(wps_template_str)
+
     with open(GSKY_CONFIG['GSKY_CONFIG_FILE'], 'w') as fp:
         config_str = json.dumps(config)
         fp.write(config_str)
@@ -67,10 +78,10 @@ def update_gsky_config(*args, **kwargs):
     for layer in layers:
         context['layers'].append(layer)
 
-    template = render_to_string("ingest.sh.html", context)
+    sh_template_str = render_to_string("ingest.sh.tpl", context)
 
     with open(GSKY_CONFIG['GSKY_INGEST_SCRIPT'], 'w') as sh:
-        sh.write(template)
+        sh.write(sh_template_str)
 
 
 def rgba_dict_to_hex(rgba):
