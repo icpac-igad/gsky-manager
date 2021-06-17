@@ -14,15 +14,14 @@ GSKY_CONFIG = getattr(settings, 'GSKY_CONFIG', {})
 WEBHOOK_SECRET = getattr(settings, 'WEBHOOK_SECRET')
 GSKY_WEBHOOK_URL = GSKY_CONFIG.get("GSKY_WEBHOOK_URL")
 
-
 class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         if GSKY_WEBHOOK_URL and WEBHOOK_SECRET:
-            logger.info(f"[INGEST COMMAND]: Sending gsky ingest command ")
+            logger.info(f"[INGEST COMMAND]: Sending gsky reload config command ")
             payload = {"now": time.time()}
             request = requests.Request(
-                'POST', f"{GSKY_WEBHOOK_URL}/ingest-data",
+                'POST', f"{GSKY_WEBHOOK_URL}/reload-config",
                 data=payload, headers={})
 
             prepped = request.prepare()
