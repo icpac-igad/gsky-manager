@@ -133,6 +133,8 @@ USE_L10N = True
 
 USE_TZ = True
 
+FORCE_SCRIPT_NAME = env.str("FORCE_SCRIPT_NAME", None)
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
@@ -151,10 +153,10 @@ STATICFILES_DIRS = [
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATIC_URL = '/static/'
+STATIC_URL = '/gsky/gsky_static/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+MEDIA_URL = '/gsky/gsky_media/'
 
 # Wagtail settings
 
