@@ -15,7 +15,7 @@ def update_gsky_config(*args, **kwargs):
     config = {
         "service_config": {
             "ows_hostname": GSKY_CONFIG["GSKY_OWS_HOST_NAME"],
-            "ows_protocol": GSKY_CONFIG["GSKY_PROTOCOL"],
+            "ows_protocol": GSKY_CONFIG["GSKY_OWS_PROTOCOL"],
             "mas_address": GSKY_CONFIG["GSKY_MAS_ADDRESS"],
             "worker_nodes": GSKY_CONFIG["GSKY_WORKER_NODES"],
         },
