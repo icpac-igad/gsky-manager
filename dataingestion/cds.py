@@ -7,15 +7,16 @@ import urllib3
 from dataingestion.nc import clip_by_shp
 from gskymanager.utils import get_object_or_none
 from layermanager.models import Layer
+from django.conf import settings
 
 urllib3.disable_warnings()
 
 URL = "https://ads.atmosphere.copernicus.eu/api/v2"
-KEY = "6294:b1074746-979c-46ad-ba37-c55accfb8710"
+ADS_KEY = getattr(settings, "ADS_KEY", "")
 
 
 def fetch_tcco(date):
-    c = cdsapi.Client(url=URL, key=KEY)
+    c = cdsapi.Client(url=URL, key=ADS_KEY)
 
     temp_dir = tempfile.TemporaryDirectory()
 
@@ -50,6 +51,7 @@ def fetch_tcco(date):
     except Exception as e:
         # we have an error
         print(e)
+        return False
     finally:
         # clean up temporary directory
         temp_dir.cleanup()
