@@ -77,7 +77,8 @@ def update_gsky_config(*args, **kwargs):
 
     # handle layer
     for layer in layers:
-        context['layers'].append(layer)
+        if os.listdir(layer.host_full_path):
+            context['layers'].append(layer)
 
     sh_template_str = render_to_string("ingest.sh.tpl", context)
 
