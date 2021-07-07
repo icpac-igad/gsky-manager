@@ -28,7 +28,7 @@ class Command(BaseCommand):
                 raise CommandError(f"Incorrect date '{data_date}'. Expected Y-M-D")
 
         # fetch carbon monoxide forecast
-        processed = fetch_tcco(data_date)
+        processed = fetch_tcco(data_date, to_float=True)
 
         if processed:
             call_command('gskyingest')
