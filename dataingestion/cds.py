@@ -49,6 +49,7 @@ def fetch_tcco(date, to_float=False):
             for var in ds.data_vars:
                 if var != "spatia_ref":
                     ds[var] = ds[var].astype(float)
+                    ds[var].attrs['_FillValue'] = -9999.0
 
             ds.to_netcdf(file_name)
             ds.close()
