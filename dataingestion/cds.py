@@ -3,6 +3,7 @@ import tempfile
 
 import cdsapi
 import urllib3
+import xarray
 
 from dataingestion.nc import clip_by_shp
 from gskymanager.utils import get_object_or_none
@@ -42,12 +43,18 @@ def fetch_tcco(date, to_float=False):
 
         if layer and os.path.exists(file_name):
             ds = clip_by_shp(file_name)
-            ds.to_netcdf(f"{layer.host_full_path}/{date}.nc")
+            encoding = {}
 
+            # try to convert all types to float
             if to_float:
-                for x in ds.data_vars:
-                    if x != "spatia_ref":
-                        ds[x] = ds[x].astype(float)
+                if isinstance(ds, xarray.DataArray):
+                    encoding[ds.name] = {"dtype": "float"}
+                else:
+                    for var in ds.data_vars:
+                        if var != "spatia_ref":
+                            ds[var] = ds[var].astype(float)
+
+            ds.to_netcdf(f"{layer.host_full_path}/{date}.nc", encoding=encoding)
 
             return True
 
