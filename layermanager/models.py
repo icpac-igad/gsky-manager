@@ -22,6 +22,43 @@ if not HOST_DATA_ROOT_PATH and os.path.isabs(HOST_DATA_ROOT_PATH):
     HOST_DATA_ROOT_PATH = os.path.abspath(HOST_DATA_ROOT_PATH)
 
 GSKY_CONFIG = getattr(settings, "GSKY_CONFIG")
+OWS_BASE_URL = getattr(settings, "OWS_BASE_URL")
+
+
+@register_snippet
+class DatasetCategory(ClusterableModel):
+    title = models.CharField(max_length=25)
+    icon = models.CharField(max_length=100, blank=True)
+    order = models.PositiveIntegerField(default=0)
+    active = models.BooleanField(default=True)
+
+    panels = [
+        FieldPanel('title'),
+        FieldPanel('icon'),
+        FieldPanel('active'),
+        FieldPanel('order'),
+        CondensedInlinePanel('sub_categories', heading="Sub categories", label="Sub Category"),
+    ]
+
+    class Meta:
+        ordering = ('order',)
+        verbose_name_plural = "Data Categories"
+
+    def __str__(self):
+        return self.title
+
+
+class DatasetSubCategory(Orderable):
+    category = ParentalKey('DatasetCategory', related_name='sub_categories')
+    title = models.CharField(max_length=50)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name_plural = "Data Sub Categories"
+        ordering = ['sort_order']
+
+    def __str__(self):
+        return self.title
 
 
 @register_snippet
@@ -53,6 +90,8 @@ class GeoCollection(models.Model):
 class LayerGroup(ClusterableModel):
     name = models.CharField(max_length=100)
     file_match = models.CharField(max_length=255)
+    sub_category = models.ForeignKey(DatasetSubCategory, blank=True, null=True, on_delete=models.PROTECT,
+                                     help_text="Sub Category")
 
     def __str__(self):
         return self.name
@@ -60,7 +99,8 @@ class LayerGroup(ClusterableModel):
     panels = [
         FieldPanel('name'),
         FieldPanel('file_match'),
-        CondensedInlinePanel('layers', heading="Derived Layers", label="Derived Layer"),
+        FieldPanel('sub_category'),
+        CondensedInlinePanel('layers', heading="Layers", label="Layer"),
     ]
 
 
@@ -90,6 +130,8 @@ class Layer(ClusterableModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255, help_text="Layer Title")
+    sub_category = models.ForeignKey(DatasetSubCategory, blank=True, null=True, on_delete=models.PROTECT,
+                                     help_text="Sub Category")
     name = models.CharField(max_length=100, help_text="Layer identifier", unique=True)
     variable = models.CharField(unique=True, max_length=100, help_text="Layer netcdf variable")
     collection = models.ForeignKey('GeoCollection', on_delete=models.PROTECT, related_name='layers')
@@ -110,6 +152,7 @@ class Layer(ClusterableModel):
         FieldPanel('name'),
         FieldPanel('variable'),
         FieldPanel('collection'),
+        FieldPanel('sub_category'),
         FieldPanel('time_generator'),
         FieldPanel('color_scale'),
         FieldPanel('time_interval'),
@@ -125,6 +168,17 @@ class Layer(ClusterableModel):
 
     def __str__(self):
         return f"{self.title} - {self.collection.name}"
+
+    @property
+    def layerConfig(self):
+        return {
+            "source": {
+                "tiles": [
+                    f"{OWS_BASE_URL}?service=WMS&request=GetMap"
+                ],
+                "type": "raster"
+            },
+            "type": "raster"}
 
     @property
     def gsky_layer(self):
@@ -151,7 +205,11 @@ class Layer(ClusterableModel):
 
     @property
     def legend(self):
-        return self.color_scale.legend
+        return {
+            "title": self.title,
+            "type": self.color_scale.legend_type,
+            "items": self.color_scale.legend
+        }
 
     @property
     def host_full_path(self):
@@ -187,9 +245,16 @@ class DerivedLayer(Orderable):
 
 @register_snippet
 class ColorScale(ClusterableModel):
+    LEGEND_TYPE_CHOICES = (
+        ('basic', 'Basic'),
+        ('choropleth', 'Choropleth'),
+        ('gradient', 'Gradient'),
+    )
+
     title = models.CharField(max_length=100)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     interpolate = models.BooleanField(default=False)
+    legend_type = models.CharField(max_length=100, choices=LEGEND_TYPE_CHOICES, help_text="Legend Type")
     r = models.PositiveIntegerField(validators=[
         MaxValueValidator(255),
     ])
@@ -256,6 +321,7 @@ class ColorScale(ClusterableModel):
 
     panels = [
         FieldPanel('title'),
+        FieldPanel('legend_type'),
         CondensedInlinePanel('color_values', heading="Color Values", label="Color Value"),
         MultiFieldPanel([
             FieldPanel('r'),
