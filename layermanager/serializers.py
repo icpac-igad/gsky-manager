@@ -9,6 +9,7 @@ class LayerSerializer(serializers.ModelSerializer):
     category = serializers.SerializerMethodField()
     dataset = serializers.SerializerMethodField()
     layerConfig = serializers.ReadOnlyField()
+    params = serializers.ReadOnlyField()
 
     class Meta:
         model = Layer
@@ -23,7 +24,8 @@ class LayerSerializer(serializers.ModelSerializer):
             'time_interval',
             'layerConfig',
             'legendConfig',
-            'isBoundary'
+            'isBoundary',
+            'params'
         ]
 
     @staticmethod

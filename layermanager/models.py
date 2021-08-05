@@ -172,7 +172,7 @@ class Layer(ClusterableModel):
     @property
     def tile_url(self):
         default_wms_params = "service=WMS&request=GetMap&version=1.1.1&width=256&height=256&styles=&transparent=true&" \
-                             "srs=EPSG:3857&bbox={bbox-epsg-3857}&format=image/png"
+                             "srs=EPSG:3857&bbox={bbox-epsg-3857}&format=image/png&time={time}"
         return f"{OWS_BASE_URL}?{default_wms_params}&layers={self.name}"
 
     @property
@@ -183,6 +183,12 @@ class Layer(ClusterableModel):
                 "type": "raster"
             },
             "type": "raster"
+        }
+
+    @property
+    def params(self):
+        return {
+            "time": ""
         }
 
     @property
