@@ -36,7 +36,7 @@ def get_layers(request):
     for layer in layers_serializer.data:
         dataset = {
             "id": layer['id'],
-            "name": layer['title'],
+            "name": layer['name'],
             "layer": layer['id'],
             "category": layer['category'],
             "sub_category": layer['sub_category'],

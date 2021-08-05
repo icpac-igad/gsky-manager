@@ -308,7 +308,8 @@ class ColorScale(ClusterableModel):
     @property
     def legend(self):
         values = self.values
-        return list(map(lambda item: {"value": item['threshold'], "color": rgba_dict_to_hex(item['color'])}, values))
+        return list(map(lambda item: {"name": item['name'] if item.get('name') else item['threshold'],
+                                      "color": rgba_dict_to_hex(item['color'])}, values))
 
     @staticmethod
     def get_color_for_index(index, values, other):
@@ -366,7 +367,8 @@ class ColorValue(Orderable):
 
     @property
     def value(self):
-        return {"threshold": self.threshold, "color": {"R": self.r, "G": self.g, "B": self.b, "A": self.a}}
+        return {"threshold": self.threshold, "color": {"R": self.r, "G": self.g, "B": self.b, "A": self.a},
+                "name": self.name}
 
     def __str__(self):
         return f"{self.r} {self.g} {self.b}, {self.a}"

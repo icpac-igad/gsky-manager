@@ -30,15 +30,17 @@ class LayerSerializer(serializers.ModelSerializer):
     dataset = serializers.SerializerMethodField()
     layerConfig = serializers.ReadOnlyField()
     params = serializers.ReadOnlyField()
+    name = serializers.SerializerMethodField()
+    layer_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Layer
         fields = [
             'id',
             'dataset',
-            'title',
-            'name',
             'active',
+            'name',
+            'layer_name',
             'category',
             'sub_category',
             'time_interval',
@@ -47,6 +49,14 @@ class LayerSerializer(serializers.ModelSerializer):
             'isBoundary',
             'params'
         ]
+
+    @staticmethod
+    def get_name(obj):
+        return obj.title
+
+    @staticmethod
+    def get_layer_name(obj):
+        return obj.name
 
     @staticmethod
     def get_dataset(obj):
