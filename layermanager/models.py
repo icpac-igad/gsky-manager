@@ -170,6 +170,10 @@ class Layer(ClusterableModel):
         return f"{self.title} - {self.collection.name}"
 
     @property
+    def default(self):
+        return True
+
+    @property
     def tile_url(self):
         default_wms_params = "service=WMS&request=GetMap&version=1.1.1&width=256&height=256&styles=&transparent=true&" \
                              "srs=EPSG:3857&bbox={bbox-epsg-3857}&format=image/png&time={time}"

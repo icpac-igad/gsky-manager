@@ -30,6 +30,7 @@ class LayerSerializer(serializers.ModelSerializer):
     dataset = serializers.SerializerMethodField()
     layerConfig = serializers.ReadOnlyField()
     params = serializers.ReadOnlyField()
+    default = serializers.ReadOnlyField()
     name = serializers.SerializerMethodField()
     layer_name = serializers.SerializerMethodField()
 
@@ -38,6 +39,7 @@ class LayerSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'dataset',
+            'default',
             'active',
             'name',
             'layer_name',
@@ -47,7 +49,7 @@ class LayerSerializer(serializers.ModelSerializer):
             'layerConfig',
             'legendConfig',
             'isBoundary',
-            'params'
+            'params',
         ]
 
     @staticmethod
@@ -94,6 +96,7 @@ class LayerGroupSerializer(serializers.ModelSerializer):
             layer_data = LayerSerializer(layer_group_layer.layer).data
             layer_data['category'] = obj.sub_category.category.id
             layer_data['dataset'] = obj.id
+            layer_data['default'] = layer_group_layer.is_default
             layer_data['sub_category'] = obj.sub_category.id
             layers.append(layer_data)
         return layers
