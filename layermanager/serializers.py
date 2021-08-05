@@ -1,6 +1,26 @@
 from rest_framework import serializers
 
-from layermanager.models import Layer, LayerGroup, LayerGroupLayer
+from layermanager.models import Layer, LayerGroup, DatasetCategory, DatasetSubCategory
+
+
+class DatasetSubCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DatasetSubCategory
+        fields = ['id', 'active', 'title', 'sort_order']
+
+
+class DatasetCategorySerializer(serializers.ModelSerializer):
+    sub_categories = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DatasetCategory
+        fields = ['id', 'icon', 'title', 'active', 'sub_categories']
+
+    @staticmethod
+    def get_sub_categories(obj):
+        sub_categories = obj.sub_categories.filter(active=True)
+        serializer = DatasetSubCategorySerializer(sub_categories, many=True)
+        return serializer.data
 
 
 class LayerSerializer(serializers.ModelSerializer):

@@ -1,7 +1,14 @@
-from layermanager.serializers import LayerSerializer, LayerGroupSerializer
+from layermanager.serializers import LayerSerializer, LayerGroupSerializer, DatasetCategorySerializer
 from django.http import JsonResponse
 
-from layermanager.models import Layer, LayerGroup
+from layermanager.models import Layer, LayerGroup, DatasetCategory
+
+
+def get_categories(request):
+    categories_queryset = DatasetCategory.objects.filter(active=True)
+    categories_serializer = DatasetCategorySerializer(categories_queryset, many=True)
+
+    return JsonResponse(categories_serializer.data, safe=False)
 
 
 def get_layers(request):

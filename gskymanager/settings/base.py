@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'modelcluster',
     'taggit',
     'condensedinlinepanel',
+    'corsheaders',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -63,6 +64,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -189,3 +191,5 @@ CONTAINER_DATA_ROOT_PATH = env.str("CONTAINER_DATA_ROOT_PATH")
 SHP_FILES_ROOT = os.path.join(BASE_DIR, 'shapefiles')
 
 WEBHOOK_SECRET = env.str("WEBHOOK_SECRET", None)
+
+CORS_ALLOW_ALL_ORIGINS = True
