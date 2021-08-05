@@ -33,6 +33,7 @@ class LayerSerializer(serializers.ModelSerializer):
     default = serializers.ReadOnlyField()
     name = serializers.SerializerMethodField()
     layer_name = serializers.SerializerMethodField()
+    fetchTimestamps = serializers.SerializerMethodField()
 
     class Meta:
         model = Layer
@@ -50,6 +51,7 @@ class LayerSerializer(serializers.ModelSerializer):
             'legendConfig',
             'isBoundary',
             'params',
+            'fetchTimestamps'
         ]
 
     @staticmethod
@@ -63,6 +65,10 @@ class LayerSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_dataset(obj):
         return obj.id
+
+    @staticmethod
+    def get_fetchTimestamps(obj):
+        return True
 
     @staticmethod
     def get_category(obj):
