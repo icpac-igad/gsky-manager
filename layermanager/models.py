@@ -219,7 +219,7 @@ class Layer(ClusterableModel):
         return {
             "title": self.title,
             "type": self.color_scale.legend_type,
-            "items": self.color_scale.legend
+            "items": self.color_scale.legend_items
         }
 
     @property
@@ -278,6 +278,8 @@ class ColorScale(ClusterableModel):
     a = models.PositiveIntegerField(validators=[
         MaxValueValidator(255),
     ])
+    the_rest_name = models.CharField(max_length=100, blank=True, null=True, help_text="Label",
+                                     verbose_name="label")
 
     @property
     def other(self):
@@ -306,15 +308,34 @@ class ColorScale(ClusterableModel):
         return {"interpolate": self.interpolate, "colours": colors}
 
     @property
-    def legend(self):
+    def legend_items(self):
+        items = []
         values = self.values
-        return list(map(lambda item: {"name": item['name'] if item.get('name') else item['threshold'],
-                                      "color": rgba_dict_to_hex(item['color'])}, values))
+        count = len(values)
+
+        if count > 1:
+            for i, value in enumerate(values):
+                # skip the first one
+                if i != 0:
+                    item = {"name": value['name'] if value.get('name') else value['threshold'],
+                            "color": rgba_dict_to_hex(value['color'])}
+                    items.append(item)
+            the_rest_name = self.the_rest_name if self.the_rest_name else values[0]['name']
+
+            rest_item = {"name": the_rest_name if the_rest_name else f"> {int(values[-1]['threshold'])}",
+                         "color": rgba_dict_to_hex(self.other)}
+            items.append(rest_item)
+        else:
+            the_rest_name = self.the_rest_name if self.the_rest_name else values[0]['name']
+            rest_item = {"name": the_rest_name, "color": rgba_dict_to_hex(self.other)}
+            items.append(rest_item)
+
+        return items
 
     @staticmethod
     def get_color_for_index(index, values, other):
         for i, value in enumerate(values):
-            # if it is the first one, check if it less that the threshold
+            # if it is the first one, check if it less than the threshold
             if i == 0:
                 if index < value['threshold']:
                     return value['color']
@@ -340,6 +361,7 @@ class ColorScale(ClusterableModel):
             FieldPanel('g'),
             FieldPanel('b'),
             FieldPanel('a'),
+            FieldPanel('the_rest_name'),
         ], "Other"),
         FieldPanel('interpolate'),
     ]
@@ -351,7 +373,7 @@ class ColorScale(ClusterableModel):
 class ColorValue(Orderable):
     layer = ParentalKey('ColorScale', related_name='color_values')
     threshold = models.FloatField()
-    name = models.CharField(max_length=100, blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True, null=True, verbose_name='label')
     r = models.PositiveIntegerField(validators=[
         MaxValueValidator(255),
     ])
@@ -367,8 +389,11 @@ class ColorValue(Orderable):
 
     @property
     def value(self):
-        return {"threshold": self.threshold, "color": {"R": self.r, "G": self.g, "B": self.b, "A": self.a},
-                "name": self.name}
+        return {
+            "threshold": self.threshold,
+            "color": {"R": self.r, "G": self.g, "B": self.b, "A": self.a},
+            "name": self.name
+        }
 
     def __str__(self):
         return f"{self.r} {self.g} {self.b}, {self.a}"
