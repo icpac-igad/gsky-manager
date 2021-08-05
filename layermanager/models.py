@@ -320,11 +320,11 @@ class ColorScale(ClusterableModel):
                     item = {"name": value['name'] if value.get('name') else value['threshold'],
                             "color": rgba_dict_to_hex(value['color'])}
                     items.append(item)
-            the_rest_name = self.the_rest_name if self.the_rest_name else values[0]['name']
-
-            rest_item = {"name": the_rest_name if the_rest_name else f"> {int(values[-1]['threshold'])}",
-                         "color": rgba_dict_to_hex(self.other)}
-            items.append(rest_item)
+            # the_rest_name = self.the_rest_name if self.the_rest_name else values[0]['name']
+            #
+            # rest_item = {"name": the_rest_name if the_rest_name else f"> {int(values[-1]['threshold'])}",
+            #              "color": rgba_dict_to_hex(self.other)}
+            # items.append(rest_item)
         else:
             the_rest_name = self.the_rest_name if self.the_rest_name else values[0]['name']
             rest_item = {"name": the_rest_name, "color": rgba_dict_to_hex(self.other)}
