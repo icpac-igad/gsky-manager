@@ -98,6 +98,8 @@ class LayerGroupSerializer(serializers.ModelSerializer):
             layer_data['dataset'] = obj.id
             layer_data['default'] = layer_group_layer.is_default
             layer_data['isMultiLayer'] = True
+            if not layer_data['default']:
+                layer_data['nestedLegend'] = True
             layer_data['sub_category'] = obj.sub_category.id
             layers.append(layer_data)
         return layers
