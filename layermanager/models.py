@@ -170,15 +170,20 @@ class Layer(ClusterableModel):
         return f"{self.title} - {self.collection.name}"
 
     @property
+    def tile_url(self):
+        default_wms_params = "service=WMS&request=GetMap&version=1.1.1&width=256&height=256&styles=&transparent=true&" \
+                             "srs=EPSG:3857&bbox={bbox-epsg-3857}&format=image/png"
+        return f"{OWS_BASE_URL}?{default_wms_params}&layers={self.name}"
+
+    @property
     def layerConfig(self):
         return {
             "source": {
-                "tiles": [
-                    f"{OWS_BASE_URL}?service=WMS&request=GetMap"
-                ],
+                "tiles": [self.tile_url],
                 "type": "raster"
             },
-            "type": "raster"}
+            "type": "raster"
+        }
 
     @property
     def gsky_layer(self):

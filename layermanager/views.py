@@ -17,7 +17,9 @@ def get_layers(request):
         dataset = {
             "id": layer_group['id'],
             "name": layer_group['name'],
+            "category": layer_group['category'],
             "sub_category": layer_group['sub_category'],
+            "isMultiLayer": True,
             "layer": layer_group['default_layer_id'],
             "layers": layer_group['layers']
         }
@@ -29,6 +31,7 @@ def get_layers(request):
             "id": layer['id'],
             "name": layer['title'],
             "layer": layer['id'],
+            "category": layer['category'],
             "sub_category": layer['sub_category'],
             "layers": [layer]
         }
