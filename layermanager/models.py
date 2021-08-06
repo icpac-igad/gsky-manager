@@ -191,12 +191,6 @@ class Layer(ClusterableModel):
         }
 
     @property
-    def params(self):
-        return {
-            "time": ""
-        }
-
-    @property
     def gsky_layer(self):
         return {
             "name": self.name,
