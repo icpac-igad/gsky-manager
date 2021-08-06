@@ -88,6 +88,7 @@ class GeoCollection(models.Model):
 
 @register_snippet
 class LayerGroup(ClusterableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     file_match = models.CharField(max_length=255)
     sub_category = models.ForeignKey(DatasetSubCategory, blank=True, null=True, on_delete=models.PROTECT,

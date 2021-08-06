@@ -108,7 +108,7 @@ class LayerGroupSerializer(serializers.ModelSerializer):
         for layer_group_layer in layers_queryset:
             layer_data = LayerSerializer(layer_group_layer.layer).data
             layer_data['category'] = obj.sub_category.category.id
-            layer_data['dataset'] = obj.id
+            layer_data['dataset'] = obj.pk
             layer_data['default'] = layer_group_layer.is_default
             layer_data['isMultiLayer'] = True
             if not layer_data['default']:
