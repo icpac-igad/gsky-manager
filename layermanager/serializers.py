@@ -29,6 +29,7 @@ class LayerSerializer(serializers.ModelSerializer):
     category = serializers.SerializerMethodField()
     dataset = serializers.SerializerMethodField()
     layerConfig = serializers.ReadOnlyField()
+    params = serializers.ReadOnlyField()
     default = serializers.ReadOnlyField()
     name = serializers.SerializerMethodField()
     layer_name = serializers.SerializerMethodField()
@@ -51,6 +52,7 @@ class LayerSerializer(serializers.ModelSerializer):
             'layerConfig',
             'legendConfig',
             'isBoundary',
+            'params',
             'fetchTimestamps',
             'data_path',
         ]

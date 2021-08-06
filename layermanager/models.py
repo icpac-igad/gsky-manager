@@ -12,6 +12,7 @@ from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel
 from wagtail.core.models import Orderable
 from wagtail.core.utils import safe_snake_case
 from wagtail.snippets.models import register_snippet
+from datetime import date
 
 from layermanager.utils import rgba_dict_to_hex, update_gsky_config
 
@@ -188,6 +189,16 @@ class Layer(ClusterableModel):
                 "type": "raster"
             },
             "type": "raster"
+        }
+
+    @property
+    def params(self):
+        # We use today as the default and format time as gsky expects it to avoid errors.
+        # The frontend should be able to pull all the timestamps and determine the most recent one
+        # and use it to update the time param appropriately
+        today_timestamp = date.today().strftime("%Y-%m-%dT00:00:00.000Z")
+        return {
+            "time": today_timestamp
         }
 
     @property
