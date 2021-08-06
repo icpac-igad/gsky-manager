@@ -45,6 +45,7 @@ class LayerSerializer(serializers.ModelSerializer):
             'active',
             'name',
             'layer_name',
+            'variable',
             'category',
             'sub_category',
             'time_interval',
@@ -53,7 +54,7 @@ class LayerSerializer(serializers.ModelSerializer):
             'isBoundary',
             'params',
             'fetchTimestamps',
-            'data_path'
+            'data_path',
         ]
 
     @staticmethod
