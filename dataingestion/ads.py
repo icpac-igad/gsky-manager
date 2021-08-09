@@ -39,8 +39,9 @@ def fetch_ads_data(variable, date, path, to_float=True):
         response = c.retrieve(request.get("dataset"), request.get("options"), temp_file_path)
 
         if os.path.exists(temp_file_path):
+
             if to_float:
-                ds = xr.open_dataset(temp_file_path)
+                ds = xr.open_dataset(temp_file_path, decode_times=False)
                 # try to convert all types to float
                 for var in ds.data_vars:
                     if var != "spatia_ref":
@@ -52,7 +53,8 @@ def fetch_ads_data(variable, date, path, to_float=True):
 
             ds = clip_by_shp(temp_file_path)
 
-            nc_file_name = f"PM2P5_{date.replace('-', '')}.nc"
+            # remove hyphens
+            nc_file_name = f"{date.replace('-', '')}.nc"
 
             ds.to_netcdf(f"{path}/{nc_file_name}")
 
