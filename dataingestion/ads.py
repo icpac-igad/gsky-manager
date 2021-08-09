@@ -19,7 +19,7 @@ def fetch_ads_data(variable, date, path, to_float=True):
 
     temp_dir = tempfile.TemporaryDirectory()
 
-    file_name = f"{temp_dir.name}/{date}.nc"
+    temp_file_path = f"{temp_dir.name}/{date}.nc"
 
     request = {
         "dataset": "cams-global-atmospheric-composition-forecasts",
@@ -36,23 +36,25 @@ def fetch_ads_data(variable, date, path, to_float=True):
 
     try:
         # retrieve data
-        response = c.retrieve(request.get("dataset"), request.get("options"), file_name)
+        response = c.retrieve(request.get("dataset"), request.get("options"), temp_file_path)
 
-        if os.path.exists(file_name):
+        if os.path.exists(temp_file_path):
             if to_float:
-                ds = xr.open_dataset(file_name)
+                ds = xr.open_dataset(temp_file_path)
                 # try to convert all types to float
                 for var in ds.data_vars:
                     if var != "spatia_ref":
                         ds[var] = ds[var].astype(float)
                         ds[var].attrs['_FillValue'] = -9999.0
 
-                ds.to_netcdf(file_name)
+                ds.to_netcdf(temp_file_path)
                 ds.close()
 
-            ds = clip_by_shp(file_name)
+            ds = clip_by_shp(temp_file_path)
 
-            ds.to_netcdf(f"{path}/{date}.nc")
+            nc_file_name = f"PM2P5_{date.replace('-', '')}.nc"
+
+            ds.to_netcdf(f"{path}/{nc_file_name}")
 
             ds.close()
 
