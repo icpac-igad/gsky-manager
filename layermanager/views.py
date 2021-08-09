@@ -1,7 +1,10 @@
-from layermanager.serializers import LayerSerializer, LayerGroupSerializer, DatasetCategorySerializer
+from gskymanager.utils import get_object_or_none
+from layermanager.serializers import LayerSerializer, LayerGroupSerializer, DatasetCategorySerializer, \
+    LayerMetadataSerializer
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 
-from layermanager.models import Layer, LayerGroup, DatasetCategory
+from layermanager.models import Layer, LayerGroup, DatasetCategory, LayerMetadata
 
 
 def get_categories(request):
@@ -24,6 +27,7 @@ def get_layers(request):
         dataset = {
             "id": layer_group['id'],
             "name": layer_group['name'],
+            "metadata": layer_group['metadata'],
             "category": layer_group['category'],
             "sub_category": layer_group['sub_category'],
             "isMultiLayer": True,
@@ -37,6 +41,7 @@ def get_layers(request):
         dataset = {
             "id": layer['id'],
             "name": layer['name'],
+            "metadata": layer['metadata'],
             "layer": layer['id'],
             "category": layer['category'],
             "sub_category": layer['sub_category'],
@@ -46,3 +51,21 @@ def get_layers(request):
         data.append(dataset)
 
     return JsonResponse(data, safe=False)
+
+
+def get_metadata_list(request):
+    metadata_queryset = LayerMetadata.objects.all()
+    metadata_serializer = LayerMetadataSerializer(metadata_queryset, many=True)
+
+    return JsonResponse(metadata_serializer.data, safe=False)
+
+
+def get_metadata_by_id(request, pk):
+    metadata_obj = get_object_or_none(LayerMetadata, pk=pk)
+
+    if metadata_obj:
+        metadata_serializer = LayerMetadataSerializer(metadata_obj)
+
+        return JsonResponse(metadata_serializer.data, safe=False)
+
+    return JsonResponse({"error": f"Metadata with id '{pk}' does not exist"}, status=404, safe=False)

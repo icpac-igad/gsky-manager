@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from layermanager.models import Layer, LayerGroup, DatasetCategory, DatasetSubCategory
+from layermanager.models import (Layer, LayerGroup, DatasetCategory, DatasetSubCategory, LayerMetadata)
 
 
 class DatasetSubCategorySerializer(serializers.ModelSerializer):
@@ -55,6 +55,7 @@ class LayerSerializer(serializers.ModelSerializer):
             'params',
             'fetchTimestamps',
             'data_path',
+            'metadata',
         ]
 
     @staticmethod
@@ -99,7 +100,7 @@ class LayerGroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LayerGroup
-        fields = ['id', 'name', 'layers', 'category', 'sub_category', 'default_layer_id']
+        fields = ['id', 'name', 'layers', 'category', 'sub_category', 'default_layer_id', 'metadata']
 
     @staticmethod
     def get_layers(obj):
@@ -109,6 +110,7 @@ class LayerGroupSerializer(serializers.ModelSerializer):
             layer_data = LayerSerializer(layer_group_layer.layer).data
             layer_data['category'] = obj.sub_category.category.id
             layer_data['dataset'] = obj.pk
+            layer_data['metadata'] = obj.metadata
             layer_data['default'] = layer_group_layer.is_default
             layer_data['isMultiLayer'] = True
             if not layer_data['default']:
@@ -133,3 +135,9 @@ class LayerGroupSerializer(serializers.ModelSerializer):
             return layer.layer.id
 
         return None
+
+
+class LayerMetadataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LayerMetadata
+        fields = '__all__'

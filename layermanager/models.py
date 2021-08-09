@@ -9,6 +9,7 @@ from django.db.models.signals import post_save
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
 from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel
+from wagtail.core.fields import RichTextField
 from wagtail.core.models import Orderable
 from wagtail.core.utils import safe_snake_case
 from wagtail.snippets.models import register_snippet
@@ -88,12 +89,40 @@ class GeoCollection(models.Model):
 
 
 @register_snippet
+class LayerMetadata(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,
+                          help_text="Unique UUID. Auto generated on creation.")
+    title = models.CharField(max_length=255)
+    subtitle = models.CharField(max_length=255, blank=True, null=True)
+    function = RichTextField(blank=True, null=True)
+    resolution = RichTextField(blank=True, null=True)
+    geographic_coverage = RichTextField(blank=True, null=True)
+    source = RichTextField(blank=True, null=True)
+    license = RichTextField(blank=True, null=True)
+    frequency_of_updates = RichTextField(blank=True, null=True)
+    cautions = RichTextField(blank=True, null=True)
+    citation = RichTextField(blank=True, null=True)
+    overview = RichTextField(blank=True, null=True)
+
+    download_data = models.URLField(blank=True, null=True)
+    learn_more = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name_plural = "Layer Metadata"
+
+
+@register_snippet
 class LayerGroup(ClusterableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     file_match = models.CharField(max_length=255)
     sub_category = models.ForeignKey(DatasetSubCategory, blank=True, null=True, on_delete=models.PROTECT,
                                      help_text="Sub Category")
+    metadata = models.ForeignKey(LayerMetadata, on_delete=models.SET_NULL, blank=True, null=True,
+                                 help_text="Layer Metadata")
 
     def __str__(self):
         return self.name
@@ -148,6 +177,8 @@ class Layer(ClusterableModel):
     file_match = models.CharField(max_length=100, null=True, blank=True)
     shard_name = models.CharField(max_length=100)
     enable_time_series = models.BooleanField(default=False)
+    metadata = models.ForeignKey(LayerMetadata, on_delete=models.SET_NULL, blank=True, null=True,
+                                 help_text="Layer Metadata")
 
     panels = [
         FieldPanel('title'),
@@ -165,6 +196,7 @@ class Layer(ClusterableModel):
         FieldPanel('sub_path'),
         FieldPanel('file_match'),
         FieldPanel('enable_time_series'),
+        FieldPanel('metadata'),
         CondensedInlinePanel('derived_layers', heading="Derived Layers", label="Derived Layer"),
     ]
 
