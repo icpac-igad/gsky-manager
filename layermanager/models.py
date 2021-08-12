@@ -135,7 +135,7 @@ class Layer(ClusterableModel):
     sub_category = models.ForeignKey(DatasetSubCategory, blank=True, null=True, on_delete=models.PROTECT,
                                      help_text="Sub Category")
     name = models.CharField(max_length=100, help_text="Layer identifier", unique=True)
-    variable = models.CharField(unique=True, max_length=100, help_text="Layer netcdf variable")
+    variable = models.CharField(max_length=100, blank=True, null=True, help_text="Layer variable")
     collection = models.ForeignKey('GeoCollection', on_delete=models.PROTECT, related_name='layers')
     time_generator = models.CharField(max_length=100, default='mas', choices=TIME_GENERATOR_CHOICES)
     color_scale = models.ForeignKey('ColorScale', on_delete=models.PROTECT)
@@ -208,7 +208,7 @@ class Layer(ClusterableModel):
             "title": self.title,
             "data_source": self.container_full_path,
             "time_generator": self.time_generator,
-            "rgb_products": [self.variable],
+            "rgb_products": [self.variable] if self.variable else [],
             "palette": self.color_scale.palette,
             "offset_value": self.offset_value,
             "scale_value": self.scale_value,
@@ -217,12 +217,15 @@ class Layer(ClusterableModel):
 
     @property
     def gsky_process(self):
-        gsky_wps_template_file = os.path.join(GSKY_CONFIG['GSKY_WPS_TEMPLATES_CONTAINER_PATH'], f"{self.name}.tpl")
-        return {
-            "data_source": self.container_full_path,
-            "rgb_products": [self.variable],
-            "metadata_url": f"{gsky_wps_template_file}"
-        }
+
+        if self.variable:
+            gsky_wps_template_file = os.path.join(GSKY_CONFIG['GSKY_WPS_TEMPLATES_CONTAINER_PATH'], f"{self.name}.tpl")
+            return {
+                "data_source": self.container_full_path,
+                "rgb_products": [self.variable],
+                "metadata_url": f"{gsky_wps_template_file}"
+            }
+        return None
 
     @property
     def legend(self):
