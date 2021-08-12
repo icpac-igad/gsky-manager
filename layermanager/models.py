@@ -130,6 +130,16 @@ class Layer(ClusterableModel):
         ("year", "Yearly"),
     )
 
+    FILE_TYPE_CHOICES = (
+        ('tif',"Geotiff"),
+        ('nc',"NetCDF"),
+    )
+
+    FILE_TIME_PATTERN_CHOICES = (
+        "YYY-MM-DD","(?P<year>\\d\\d\\d\\d)(?P<month>\\d\\d)(?P<day>\\d\\d)",
+        "YY-MM","(?P<year>\\d\\d\\d\\d)(?P<month>\\d\\d)",
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255, help_text="Layer Title")
     sub_category = models.ForeignKey(DatasetSubCategory, blank=True, null=True, on_delete=models.PROTECT,
@@ -148,11 +158,15 @@ class Layer(ClusterableModel):
     file_match = models.CharField(max_length=100, null=True, blank=True)
     shard_name = models.CharField(max_length=100)
     enable_time_series = models.BooleanField(default=False)
+    file_type = models.CharField(max_length=100, default="nc", choices=FILE_TYPE_CHOICES, help_text="File Type")
+    file_time_pattern = models.CharField(max_length=100, choices=FILE_TIME_PATTERN_CHOICES, blank=True, null=True, help_text="File Time Pattern")
 
     panels = [
         FieldPanel('title'),
         FieldPanel('name'),
         FieldPanel('variable'),
+        FieldPanel('file_type'),
+        FieldPanel('file_time_pattern'),
         FieldPanel('collection'),
         FieldPanel('sub_category'),
         FieldPanel('time_generator'),
