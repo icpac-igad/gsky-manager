@@ -131,13 +131,13 @@ class Layer(ClusterableModel):
     )
 
     FILE_TYPE_CHOICES = (
-        ('tif',"Geotiff"),
-        ('nc',"NetCDF"),
+        ('tif', "Geotiff"),
+        ('nc', "NetCDF"),
     )
 
     FILE_TIME_PATTERN_CHOICES = (
-        "YYY-MM-DD","(?P<year>\\d\\d\\d\\d)(?P<month>\\d\\d)(?P<day>\\d\\d)",
-        "YY-MM","(?P<year>\\d\\d\\d\\d)(?P<month>\\d\\d)",
+        ("(?P<year>\\d\\d\\d\\d)(?P<month>\\d\\d)(?P<day>\\d\\d)", "YYYY-MM-DD"),
+        ("(?P<year>\\d\\d\\d\\d)(?P<month>\\d\\d)", "YY-MM"),
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -159,7 +159,8 @@ class Layer(ClusterableModel):
     shard_name = models.CharField(max_length=100)
     enable_time_series = models.BooleanField(default=False)
     file_type = models.CharField(max_length=100, default="nc", choices=FILE_TYPE_CHOICES, help_text="File Type")
-    file_time_pattern = models.CharField(max_length=100, choices=FILE_TIME_PATTERN_CHOICES, blank=True, null=True, help_text="File Time Pattern")
+    file_time_pattern = models.CharField(max_length=100, choices=FILE_TIME_PATTERN_CHOICES, blank=True, null=True,
+                                         help_text="File Time Pattern")
 
     panels = [
         FieldPanel('title'),
@@ -214,6 +215,11 @@ class Layer(ClusterableModel):
         return {
             "time": today_timestamp
         }
+
+    @property
+    def ruleset_path(self):
+        print(os.path.abspath(GSKY_CONFIG['GSKY_RULESETS_CONTAINER_PATH']))
+        return os.path.abspath(GSKY_CONFIG['GSKY_RULESETS_CONTAINER_PATH'])
 
     @property
     def gsky_layer(self):
