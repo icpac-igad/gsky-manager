@@ -343,6 +343,7 @@ class ColorScale(ClusterableModel):
         colors = []
         for i in range(256):
             v = self.get_color_for_index(i, values, self.other)
+            print(v)
             colors.append(v)
 
         return {"interpolate": self.interpolate, "colours": colors}
@@ -384,8 +385,11 @@ class ColorScale(ClusterableModel):
                     return other
                 # no match continue
                 continue
+
+            prev_value = value.get('prev')
+
             # if no the first one, do comparison using also the prev value
-            if value.get('prev'):
+            if prev_value is not None:
                 if value['prev'] <= index < value['threshold']:
                     return value['color']
                 # no match return the value for everything else
