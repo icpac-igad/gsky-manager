@@ -37,3 +37,11 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+/tmp
+
+/cache
+
+/data
+/fixtures
+/shapefiles
