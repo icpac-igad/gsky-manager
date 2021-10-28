@@ -3,7 +3,7 @@
 ###########
 
 # Use an official Python runtime based on Debian 10 "buster" as a parent image.
-FROM python:3.8.1-slim-buster as builder
+FROM python:3.9-slim-buster as builder
 
 # Use /app folder as a directory where the source code is stored.
 WORKDIR /usr/src/app
@@ -35,20 +35,54 @@ COPY . .
 # FINAL #
 #########
 # Use an official Python runtime based on Debian 10 "buster" as a parent image.
-FROM python:3.8.1-slim-buster
+FROM python:3.9-slim-buster
 
 
 # install dependencies
 RUN apt-get update && apt-get install --yes --quiet --no-install-recommends netcat
+
+ENV GOSU_VERSION 1.14
+RUN set -eux; \
+# save list of currently installed packages for later so we can clean up
+	savedAptMark="$(apt-mark showmanual)"; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends ca-certificates wget; \
+	if ! command -v gpg; then \
+		apt-get install -y --no-install-recommends gnupg2 dirmngr; \
+	elif gpg --version | grep -q '^gpg (GnuPG) 1\.'; then \
+# "This package provides support for HKPS keyservers." (GnuPG 1.x only)
+		apt-get install -y --no-install-recommends gnupg-curl; \
+	fi; \
+	rm -rf /var/lib/apt/lists/*; \
+	\
+	dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
+	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
+	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
+	\
+# verify the signature
+	export GNUPGHOME="$(mktemp -d)"; \
+	gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+	gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
+	command -v gpgconf && gpgconf --kill all || :; \
+	rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc; \
+	\
+# clean up fetch dependencies
+	apt-mark auto '.*' > /dev/null; \
+	[ -z "$savedAptMark" ] || apt-mark manual $savedAptMark; \
+	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+	\
+	chmod +x /usr/local/bin/gosu; \
+# verify that the binary works
+	gosu --version; \
+	gosu nobody true
+
+
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
 RUN pip install --no-cache /wheels/*
 
 # create directory for the app user
 RUN mkdir -p /home/app
-
-# create the app user
-RUN useradd app
 
 # create the appropriate directories
 ENV HOME=/home/app
@@ -57,20 +91,15 @@ RUN mkdir $APP_HOME
 
 WORKDIR $APP_HOME
 
-RUN touch app.log && chown app:app app.log
+RUN touch app.log
+
+COPY . $APP_HOME
 
 # copy entrypoint.sh
-COPY ./entrypoint.sh $APP_HOME
+COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-COPY --chown=app:app . $APP_HOME
-
-RUN usermod -u 1000 app
-
-RUN mkdir -p /home/app/web/static && chown -R app:app /home/app/web/static
-RUN mkdir -p /home/app/web/media && chown -R app:app /home/app/web/media
-
-# change to the app user
-USER app
-
+RUN mkdir -p /home/app/web/static
+RUN mkdir -p /home/app/web/media
 # run entrypoint.sh
-ENTRYPOINT ["/home/app/web/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
