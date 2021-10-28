@@ -82,7 +82,7 @@ def update_gsky_config(*args, **kwargs):
         context['layers'].append(layer)
 
     for layer in context['layers']:
-        if layer.file_time_pattern:
+        if layer.use_file_pattern:
 
             file_time_pattern = SafeString(layer.file_time_pattern.replace("\\", "\\\\"))
 

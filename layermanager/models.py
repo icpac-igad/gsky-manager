@@ -136,8 +136,10 @@ class Layer(ClusterableModel):
     )
 
     FILE_TIME_PATTERN_CHOICES = (
-        ("(?P<year>\\d\\d\\d\\d)(?P<month>\\d\\d)(?P<day>\\d\\d)", "YYYY-MM-DD"),
-        ("(?P<year>\\d\\d\\d\\d)(?P<month>\\d\\d)", "YY-MM"),
+        (
+            "(?P<year>\\d\\d\\d\\d)(?P<month>\\d\\d)(?P<day>\\d\\d).*_(?P<namespace>[\\w\\d_]+)",
+            "YYYYMMDD.*_namespace"),
+        ("(?P<year>\\d\\d\\d\\d)(?P<month>\\d\\d).*_(?P<namespace>[\\w\\d_]+)", "YYMM.*_namespace"),
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -145,7 +147,7 @@ class Layer(ClusterableModel):
     sub_category = models.ForeignKey(DatasetSubCategory, blank=True, null=True, on_delete=models.PROTECT,
                                      help_text="Sub Category")
     name = models.CharField(max_length=100, help_text="Layer identifier", unique=True)
-    variable = models.CharField(max_length=100, blank=True, null=True, help_text="Layer variable")
+    variable = models.CharField(max_length=100, help_text="Layer variable")
     collection = models.ForeignKey('GeoCollection', on_delete=models.PROTECT, related_name='layers')
     time_generator = models.CharField(max_length=100, default='mas', choices=TIME_GENERATOR_CHOICES)
     color_scale = models.ForeignKey('ColorScale', on_delete=models.PROTECT)
@@ -159,6 +161,7 @@ class Layer(ClusterableModel):
     shard_name = models.CharField(max_length=100)
     enable_time_series = models.BooleanField(default=False)
     file_type = models.CharField(max_length=100, default="nc", choices=FILE_TYPE_CHOICES, help_text="File Type")
+    use_file_time_pattern = models.BooleanField(default=False, help_text="Extract time details from file name")
     file_time_pattern = models.CharField(max_length=100, choices=FILE_TIME_PATTERN_CHOICES, blank=True, null=True,
                                          help_text="File Time Pattern")
 
@@ -167,6 +170,7 @@ class Layer(ClusterableModel):
         FieldPanel('name'),
         FieldPanel('variable'),
         FieldPanel('file_type'),
+        FieldPanel('use_file_time_pattern'),
         FieldPanel('file_time_pattern'),
         FieldPanel('collection'),
         FieldPanel('sub_category'),
@@ -189,6 +193,10 @@ class Layer(ClusterableModel):
     @property
     def default(self):
         return True
+
+    @property
+    def use_file_pattern(self):
+        return self.use_file_time_pattern and self.file_time_pattern
 
     @property
     def tile_url(self):
@@ -218,7 +226,6 @@ class Layer(ClusterableModel):
 
     @property
     def ruleset_path(self):
-        print(os.path.abspath(GSKY_CONFIG['GSKY_RULESETS_CONTAINER_PATH']))
         return os.path.abspath(GSKY_CONFIG['GSKY_RULESETS_CONTAINER_PATH'])
 
     @property
@@ -228,7 +235,7 @@ class Layer(ClusterableModel):
             "title": self.title,
             "data_source": self.container_full_path,
             "time_generator": self.time_generator,
-            "rgb_products": [self.variable] if self.variable else [],
+            "rgb_products": [self.variable],
             "palette": self.color_scale.palette,
             "offset_value": self.offset_value,
             "scale_value": self.scale_value,
