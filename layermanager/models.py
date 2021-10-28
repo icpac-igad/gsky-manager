@@ -341,10 +341,15 @@ class ColorScale(ClusterableModel):
     def palette(self):
         values = self.values
         colors = []
-        for i in range(256):
-            v = self.get_color_for_index(i, values, self.other)
-            print(v)
-            colors.append(v)
+
+        if self.interpolate:
+            for value in values:
+                colors.append(value['color'])
+            colors.append(self.other)
+        else:
+            for i in range(256):
+                v = self.get_color_for_index(i, values, self.other)
+                colors.append(v)
 
         return {"interpolate": self.interpolate, "colours": colors}
 
