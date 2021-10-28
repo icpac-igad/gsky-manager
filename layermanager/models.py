@@ -130,12 +130,24 @@ class Layer(ClusterableModel):
         ("year", "Yearly"),
     )
 
+    FILE_TYPE_CHOICES = (
+        ('tif', "Geotiff"),
+        ('nc', "NetCDF"),
+    )
+
+    FILE_TIME_PATTERN_CHOICES = (
+        (
+            "(?P<year>\\d\\d\\d\\d)(?P<month>\\d\\d)(?P<day>\\d\\d).*_(?P<namespace>[\\w\\d_]+)",
+            "YYYYMMDD.*_namespace"),
+        ("(?P<year>\\d\\d\\d\\d)(?P<month>\\d\\d).*_(?P<namespace>[\\w\\d_]+)", "YYMM.*_namespace"),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255, help_text="Layer Title")
     sub_category = models.ForeignKey(DatasetSubCategory, blank=True, null=True, on_delete=models.PROTECT,
                                      help_text="Sub Category")
     name = models.CharField(max_length=100, help_text="Layer identifier", unique=True)
-    variable = models.CharField(unique=True, max_length=100, help_text="Layer netcdf variable")
+    variable = models.CharField(max_length=100, help_text="Layer variable")
     collection = models.ForeignKey('GeoCollection', on_delete=models.PROTECT, related_name='layers')
     time_generator = models.CharField(max_length=100, default='mas', choices=TIME_GENERATOR_CHOICES)
     color_scale = models.ForeignKey('ColorScale', on_delete=models.PROTECT)
@@ -148,11 +160,18 @@ class Layer(ClusterableModel):
     file_match = models.CharField(max_length=100, null=True, blank=True)
     shard_name = models.CharField(max_length=100)
     enable_time_series = models.BooleanField(default=False)
+    file_type = models.CharField(max_length=100, default="nc", choices=FILE_TYPE_CHOICES, help_text="File Type")
+    use_file_time_pattern = models.BooleanField(default=False, help_text="Extract time details from file name")
+    file_time_pattern = models.CharField(max_length=100, choices=FILE_TIME_PATTERN_CHOICES, blank=True, null=True,
+                                         help_text="File Time Pattern")
 
     panels = [
         FieldPanel('title'),
         FieldPanel('name'),
         FieldPanel('variable'),
+        FieldPanel('file_type'),
+        FieldPanel('use_file_time_pattern'),
+        FieldPanel('file_time_pattern'),
         FieldPanel('collection'),
         FieldPanel('sub_category'),
         FieldPanel('time_generator'),
@@ -174,6 +193,10 @@ class Layer(ClusterableModel):
     @property
     def default(self):
         return True
+
+    @property
+    def use_file_pattern(self):
+        return self.use_file_time_pattern and self.file_time_pattern
 
     @property
     def tile_url(self):
@@ -202,6 +225,10 @@ class Layer(ClusterableModel):
         }
 
     @property
+    def ruleset_path(self):
+        return os.path.abspath(GSKY_CONFIG['GSKY_RULESETS_CONTAINER_PATH'])
+
+    @property
     def gsky_layer(self):
         return {
             "name": self.name,
@@ -217,12 +244,15 @@ class Layer(ClusterableModel):
 
     @property
     def gsky_process(self):
-        gsky_wps_template_file = os.path.join(GSKY_CONFIG['GSKY_WPS_TEMPLATES_CONTAINER_PATH'], f"{self.name}.tpl")
-        return {
-            "data_source": self.container_full_path,
-            "rgb_products": [self.variable],
-            "metadata_url": f"{gsky_wps_template_file}"
-        }
+
+        if self.variable:
+            gsky_wps_template_file = os.path.join(GSKY_CONFIG['GSKY_WPS_TEMPLATES_CONTAINER_PATH'], f"{self.name}.tpl")
+            return {
+                "data_source": self.container_full_path,
+                "rgb_products": [self.variable],
+                "metadata_url": f"{gsky_wps_template_file}"
+            }
+        return None
 
     @property
     def legend(self):

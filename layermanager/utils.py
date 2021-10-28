@@ -1,9 +1,11 @@
 import json
 # import docker
 import os
+import re
 
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.utils.safestring import SafeString
 
 GSKY_CONFIG = getattr(settings, "GSKY_CONFIG")
 
@@ -78,6 +80,22 @@ def update_gsky_config(*args, **kwargs):
     # handle layer
     for layer in layers:
         context['layers'].append(layer)
+
+    for layer in context['layers']:
+        if layer.use_file_pattern:
+
+            file_time_pattern = SafeString(layer.file_time_pattern.replace("\\", "\\\\"))
+
+            ruleset_str = render_to_string("rulesets.tpl",
+                                           {"file_time_pattern": file_time_pattern, "extension": layer.file_type})
+
+            rulesets_host_path = os.path.abspath(GSKY_CONFIG['GSKY_RULESETS_HOST_PATH'])
+
+            if not os.path.exists(rulesets_host_path):
+                os.makedirs(rulesets_host_path)
+
+            with open(f"{rulesets_host_path}/{layer.name}.json", 'w') as rs_t:
+                rs_t.write(ruleset_str)
 
     sh_template_str = render_to_string("ingest.sh.tpl", context)
 
