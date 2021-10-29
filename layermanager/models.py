@@ -140,6 +140,7 @@ class Layer(ClusterableModel):
             "(?P<year>\\d\\d\\d\\d)(?P<month>\\d\\d)(?P<day>\\d\\d).*_(?P<namespace>[\\w\\d_]+)",
             "YYYYMMDD.*_namespace"),
         ("(?P<year>\\d\\d\\d\\d)(?P<month>\\d\\d).*_(?P<namespace>[\\w\\d_]+)", "YYMM.*_namespace"),
+        ("_(?P<namespace>[\\w\\d_]+)", "filename_namespace"),
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
