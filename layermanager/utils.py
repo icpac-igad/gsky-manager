@@ -12,7 +12,7 @@ GSKY_CONFIG = getattr(settings, "GSKY_CONFIG")
 
 def update_gsky_config(*args, **kwargs):
     from layermanager.models import Layer, LayerGroup
-    layers = Layer.objects.filter(active=True)
+    layers = Layer.objects.filter(gsky_active=True)
 
     config = {
         "service_config": {
@@ -34,6 +34,7 @@ def update_gsky_config(*args, **kwargs):
                 "title": f"{layer.title} Geometry Drill",
                 "abstract": "",
                 "max_area": 10000,
+                "pixel_stat": layer.pixel_stat,
                 "complex_data": [
                     {
                         "identifier": "geometry",

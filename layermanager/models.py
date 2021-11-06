@@ -143,6 +143,12 @@ class Layer(ClusterableModel):
         ("_(?P<namespace>[\\w\\d_]+)", "filename_namespace"),
     )
 
+    PIXEL_STAT_CHOICES = (
+        ("mean", "Mean"),
+        ("sum", "Sum"),
+        ("minmaxmean", "Min, Max, Mean"),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255, help_text="Layer Title")
     sub_category = models.ForeignKey(DatasetSubCategory, blank=True, null=True, on_delete=models.PROTECT,
@@ -157,6 +163,7 @@ class Layer(ClusterableModel):
     scale_value = models.FloatField(default=1)
     clip_value = models.FloatField()
     active = models.BooleanField(default=True)
+    gsky_active = models.BooleanField(default=True, help_text="Activate in GSKY", verbose_name="Active in GSKY")
     sub_path = models.CharField(max_length=100)
     file_match = models.CharField(max_length=100, null=True, blank=True)
     shard_name = models.CharField(max_length=100)
@@ -165,6 +172,8 @@ class Layer(ClusterableModel):
     use_file_time_pattern = models.BooleanField(default=False, help_text="Extract time details from file name")
     file_time_pattern = models.CharField(max_length=100, choices=FILE_TIME_PATTERN_CHOICES, blank=True, null=True,
                                          help_text="File Time Pattern")
+    pixel_stat = models.CharField(max_length=100, choices=PIXEL_STAT_CHOICES, default='mean',
+                                  help_text="Pixel Statistic to Query with WPS")
 
     panels = [
         FieldPanel('title'),
@@ -185,11 +194,18 @@ class Layer(ClusterableModel):
         FieldPanel('sub_path'),
         FieldPanel('file_match'),
         FieldPanel('enable_time_series'),
+        FieldPanel('pixel_stat'),
         CondensedInlinePanel('derived_layers', heading="Derived Layers", label="Derived Layer"),
     ]
 
     def __str__(self):
         return f"{self.title} - {self.collection.name}"
+
+    @property
+    def wps_tpl_cols(self):
+        if self.pixel_stat == "minmaxmean":
+            return "min,max,mean"
+        return self.variable
 
     @property
     def default(self):

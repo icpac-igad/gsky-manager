@@ -4,7 +4,7 @@
 <ows:Abstract>{{layer.title}}</ows:Abstract>
 <wps:Data>
 <wps:ComplexData mimeType="application/vnd.terriajs.catalog-member+json" schema="https://tools.ietf.org/html/rfc7159">
-<![CDATA[{ "data": "date,{{layer.variable}}\n{% verbatim %}{{ . }}{% endverbatim %}"}]]>
+<![CDATA[{ "data": "date,{{layer.wps_tpl_cols}}\n{% verbatim %}{{ . }}{% endverbatim %}"}]]>
 </wps:ComplexData>
 </wps:Data>
 </wps:Output>
