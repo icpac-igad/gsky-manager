@@ -30,7 +30,7 @@ def update_gsky_config(*args, **kwargs):
         if layer.enable_time_series:
             config['processes'].append({
                 "data_sources": [layer.gsky_process],
-                "identifier": f"{layer.name}GeometryDrill",
+                "identifier": f"{layer.wps_identifier}",
                 "title": f"{layer.title} Geometry Drill",
                 "abstract": "",
                 "max_area": 10000,

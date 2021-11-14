@@ -202,6 +202,10 @@ class Layer(ClusterableModel):
         return f"{self.title} - {self.collection.name}"
 
     @property
+    def wps_identifier(self):
+        return f"{self.name}GeometryDrill"
+
+    @property
     def wps_tpl_cols(self):
         if self.pixel_stat == "minmaxmean":
             return "min,max,mean"
