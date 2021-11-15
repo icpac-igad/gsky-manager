@@ -7,7 +7,6 @@ from wagtail.core import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
 from layermanager import urls as layer_manager_urls
-from dataingestion import urls as dataingestion_urls
 
 urlpatterns = [
     path('django-admin/', admin.site.urls),
@@ -17,7 +16,6 @@ urlpatterns = [
 
     # API urls
     path('api/', include(layer_manager_urls)),
-    path('commands/', include(dataingestion_urls)),
 ]
 
 if settings.DEBUG:

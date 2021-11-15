@@ -159,9 +159,6 @@ class Layer(ClusterableModel):
     time_generator = models.CharField(max_length=100, default='mas', choices=TIME_GENERATOR_CHOICES)
     color_scale = models.ForeignKey('ColorScale', on_delete=models.PROTECT)
     time_interval = models.CharField(max_length=100, choices=TIME_INTERVAL_CHOICES, null=True, blank=True, )
-    offset_value = models.FloatField(default=0)
-    scale_value = models.FloatField(default=1)
-    clip_value = models.FloatField()
     active = models.BooleanField(default=True)
     gsky_active = models.BooleanField(default=True, help_text="Activate in GSKY", verbose_name="Active in GSKY")
     sub_path = models.CharField(max_length=100)
@@ -187,9 +184,6 @@ class Layer(ClusterableModel):
         FieldPanel('time_generator'),
         FieldPanel('color_scale'),
         FieldPanel('time_interval'),
-        FieldPanel('offset_value'),
-        FieldPanel('scale_value'),
-        FieldPanel('clip_value'),
         FieldPanel('active'),
         FieldPanel('sub_path'),
         FieldPanel('file_match'),
@@ -258,9 +252,9 @@ class Layer(ClusterableModel):
             "time_generator": self.time_generator,
             "rgb_products": [self.variable],
             "palette": self.color_scale.palette,
-            "offset_value": self.offset_value,
-            "scale_value": self.scale_value,
-            "clip_value": self.clip_value
+            "offset_value": self.color_scale.offset_value,
+            "scale_value": self.color_scale.scale_value,
+            "clip_value": self.color_scale.clip_value
         }
 
     @property
@@ -325,6 +319,8 @@ class ColorScale(ClusterableModel):
 
     title = models.CharField(max_length=100)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    offset_value = models.FloatField(default=0, verbose_name="Minimum Value")
+    clip_value = models.FloatField(verbose_name="Maximum Value")
     interpolate = models.BooleanField(default=False)
     legend_type = models.CharField(max_length=100, choices=LEGEND_TYPE_CHOICES, help_text="Legend Type")
     r = models.PositiveIntegerField(validators=[
@@ -336,11 +332,13 @@ class ColorScale(ClusterableModel):
     b = models.PositiveIntegerField(validators=[
         MaxValueValidator(255),
     ])
-    a = models.PositiveIntegerField(validators=[
-        MaxValueValidator(255),
-    ])
+    a = models.PositiveIntegerField(default=255, validators=[MaxValueValidator(255), ])
     the_rest_name = models.CharField(max_length=100, blank=True, null=True, help_text="Label",
                                      verbose_name="label")
+
+    @property
+    def scale_value(self):
+        return 254 / (self.clip_value - self.offset_value)
 
     @property
     def other(self):
@@ -353,26 +351,45 @@ class ColorScale(ClusterableModel):
         for i, c_value in enumerate(color_values):
             value = c_value.value
             # if not the first one, add prev value for later comparison
-            if i != 0:
-                value['prev'] = color_values[i - 1].threshold
+            if i == 0:
+                value["min_value"] = None
+            else:
+                value["min_value"] = color_values[i - 1].threshold
+            value["max_value"] = value["threshold"]
             values.append(value)
+
         return values
 
     @property
     def palette(self):
-        values = self.values
         colors = []
 
         if self.interpolate:
-            for value in values:
+            for value in self.values:
                 colors.append(value['color'])
             colors.append(self.other)
         else:
             for i in range(256):
-                v = self.get_color_for_index(i, values, self.other)
-                colors.append(v)
+                rgba = self.get_color_for_index(i)
+                colors.append(rgba)
 
         return {"interpolate": self.interpolate, "colours": colors}
+
+    def get_color_for_index(self, index_value):
+        for value in self.values:
+            max_value = self.scale_value * value["max_value"]
+
+            if not value["min_value"]:
+                if index_value <= max_value:
+                    return self.values[0]["color"]
+
+            if value["min_value"]:
+                min_value = self.scale_value * value["min_value"]
+
+                if min_value < index_value < max_value:
+                    return value["color"]
+
+        return self.other
 
     @property
     def legend_items(self):
@@ -399,32 +416,11 @@ class ColorScale(ClusterableModel):
 
         return items
 
-    @staticmethod
-    def get_color_for_index(index, values, other):
-        for i, value in enumerate(values):
-            # if it is the first one, check if it less than the threshold
-            if i == 0:
-                if index < value['threshold']:
-                    return value['color']
-                # we have only one value in the color list
-                if len(values) == 1:
-                    return other
-                # no match continue
-                continue
-
-            prev_value = value.get('prev')
-
-            # if no the first one, do comparison using also the prev value
-            if prev_value is not None:
-                if value['prev'] <= index < value['threshold']:
-                    return value['color']
-                # no match return the value for everything else
-                if i == len(values) - 1:
-                    return other
-
     panels = [
         FieldPanel('title'),
         FieldPanel('legend_type'),
+        FieldPanel('offset_value'),
+        FieldPanel('clip_value'),
         CondensedInlinePanel('color_values', heading="Color Values", label="Color Value"),
         MultiFieldPanel([
             FieldPanel('r'),
