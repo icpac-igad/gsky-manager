@@ -449,9 +449,7 @@ class ColorValue(Orderable):
     b = models.PositiveIntegerField(validators=[
         MaxValueValidator(255),
     ])
-    a = models.PositiveIntegerField(validators=[
-        MaxValueValidator(255),
-    ])
+    a = models.PositiveIntegerField(default=255, validators=[MaxValueValidator(255), ])
 
     @property
     def value(self):
