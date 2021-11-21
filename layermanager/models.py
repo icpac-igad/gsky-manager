@@ -419,7 +419,7 @@ class ColorScale(ClusterableModel):
 
                 min_value = self.scale_value * min_value
 
-                if min_value <= index_value < max_value:
+                if min_value < index_value <= max_value:
                     return value["color"]
 
         return self.other
