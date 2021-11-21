@@ -319,8 +319,8 @@ class ColorScale(ClusterableModel):
 
     title = models.CharField(max_length=100)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    offset_value = models.FloatField(default=0, verbose_name="Minimum Value")
-    clip_value = models.FloatField(verbose_name="Maximum Value")
+    minimum_val = models.FloatField(default=0, verbose_name="Minimum Value")
+    maximum_val = models.FloatField(verbose_name="Maximum Value")
     interpolate = models.BooleanField(default=False)
     legend_type = models.CharField(max_length=100, choices=LEGEND_TYPE_CHOICES, help_text="Legend Type")
     r = models.PositiveIntegerField(validators=[
@@ -337,8 +337,27 @@ class ColorScale(ClusterableModel):
                                      verbose_name="label")
 
     @property
+    def min_value(self):
+        return self.minimum_val
+
+    @property
+    def max_value(self):
+        max_value = self.maximum_val
+        if self.minimum_val == max_value:
+            max_value += 0.1
+        return max_value
+
+    @property
     def scale_value(self):
-        return 254 / (self.clip_value - self.offset_value)
+        return 254 / (self.max_value - self.minimum_val)
+
+    @property
+    def offset_value(self):
+        return -self.minimum_val
+
+    @property
+    def clip_value(self):
+        return self.max_value + self.offset_value
 
     @property
     def other(self):
@@ -357,7 +376,6 @@ class ColorScale(ClusterableModel):
                 value["min_value"] = color_values[i - 1].threshold
             value["max_value"] = value["threshold"]
             values.append(value)
-
         return values
 
     @property
@@ -372,21 +390,36 @@ class ColorScale(ClusterableModel):
             for i in range(256):
                 rgba = self.get_color_for_index(i)
                 colors.append(rgba)
-
         return {"interpolate": self.interpolate, "colours": colors}
 
     def get_color_for_index(self, index_value):
         for value in self.values:
-            max_value = self.scale_value * value["max_value"]
+            max_value = value["max_value"] + self.offset_value
 
-            if not value["min_value"]:
+            if max_value > self.clip_value:
+                max_value = self.clip_value
+
+            if max_value < 0:
+                max_value = 0
+
+            max_value = self.scale_value * max_value
+
+            if value["min_value"] is None:
                 if index_value <= max_value:
                     return self.values[0]["color"]
 
-            if value["min_value"]:
-                min_value = self.scale_value * value["min_value"]
+            if value["min_value"] is not None:
+                min_value = value["min_value"] + self.offset_value
 
-                if min_value < index_value <= max_value:
+                if min_value > self.clip_value:
+                    min_value = self.clip_value
+
+                if min_value < 0:
+                    min_value = 0
+
+                min_value = self.scale_value * min_value
+
+                if min_value <= index_value < max_value:
                     return value["color"]
 
         return self.other
@@ -419,8 +452,8 @@ class ColorScale(ClusterableModel):
     panels = [
         FieldPanel('title'),
         FieldPanel('legend_type'),
-        FieldPanel('offset_value'),
-        FieldPanel('clip_value'),
+        FieldPanel('minimum_val'),
+        FieldPanel('maximum_val'),
         CondensedInlinePanel('color_values', heading="Color Values", label="Color Value"),
         MultiFieldPanel([
             FieldPanel('r'),
