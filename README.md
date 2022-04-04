@@ -29,7 +29,7 @@ Follow the steps below:
 
 3. Run the service
 
-`docker run --env-file ./env -p `
+`docker run --env-file ./.env -p 8000:8000 gsky_manager gunicorn gskymanager.wsgi:application --bind 0.0.0.0:8000`
 
 
 ## Environment Variables
