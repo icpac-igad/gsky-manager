@@ -35,7 +35,6 @@ if os.path.isfile(os.path.join(BASE_DIR, '.env')):
 INSTALLED_APPS = [
     'home',
     'layermanager',
-    'dataingestion',
 
     'wagtail.contrib.forms',
     'wagtail.contrib.redirects',
