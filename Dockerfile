@@ -20,7 +20,6 @@ RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-r
     libjpeg62-turbo-dev \
     zlib1g-dev \
     libwebp-dev \
-    netcat \
  && rm -rf /var/lib/apt/lists/*
 
 # Install the project requirements.
@@ -38,9 +37,8 @@ COPY . .
 # Use an official Python runtime based on Debian 10 "buster" as a parent image.
 FROM python:3.9-slim-buster
 
-
 # install dependencies
-RUN apt-get update && apt-get install --yes --quiet --no-install-recommends netcat
+RUN apt-get update && apt-get install --yes --quiet --no-install-recommends libpq-dev
 
 ENV GOSU_VERSION 1.14
 RUN set -eux; \
@@ -102,5 +100,8 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 RUN mkdir -p /home/app/web/static
 RUN mkdir -p /home/app/web/media
+
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
+RUN chmod +x /wait
 # run entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

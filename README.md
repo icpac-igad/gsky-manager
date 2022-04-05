@@ -34,20 +34,24 @@ Follow the steps below:
 
 ## Environment Variables
 - DEBUG => on or off. Django DEBUG setting
+- CURRENT_UID => host user id to use to run the app
+- ALLOWED_HOSTS => Django allowed hosts
+- FORCE_SCRIPT_NAME => base path to force django to resolve to. see details [here](https://docs.djangoproject.com/en/3.2/ref/settings/#force-script-name)
+- SECRET_KEY => Django secret key
 - DATABASE_URL => postgres connection URI for your database, `postgres://<user>:<pass>@<ip>:<port>/<db>`
-- FORCE_SCRIPT_NAME =>'/gsky'
-
 - HOST_DATA_ROOT_PATH => absolute host path to where the base directory for gsky data is located
 - CONTAINER_DATA_ROOT_PATH => absolute container path where the gskydata volume is mapped
-
 - GSKY_CONFIG_FILE => absolute host path to gsky config.json file
-- GSKY_INGEST_SCRIPT => absolute host path to the gsky ingest.sh file
 - GSKY_OWS_HOST_NAME => IP address of domain name to the gsky ows services, without the protocol
 - GSKY_OWS_PROTOCOL => protocol http or https
 - GSKY_MAS_ADDRESS => gsky mas address
 - GSKY_WORKER_NODES => a list gsky grpc worker nodes. Comma separated.
+- GSKY_INGEST_SCRIPT => absolute host path to the gsky ingest.sh file
 - GSKY_WPS_TEMPLATES_HOST_PATH => host absolute path to templates directory
 - GSKY_WPS_TEMPLATES_CONTAINER_PATH => container absolute path to templates directory
+- GSKY_RULESETS_HOST_PATH => host absolute path to gsky rulesets directory
+- GSKY_RULESETS_CONTAINER_PATH => container absolute path to gsky rulesets directory
+- OWS_BASE_URL => Gsky OWS base URL
 
 ## Production Deployment 
 This service is meant to be deployed together with other gsky related services as 
