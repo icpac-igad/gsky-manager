@@ -185,6 +185,7 @@ class Layer(ClusterableModel):
         FieldPanel('color_scale'),
         FieldPanel('time_interval'),
         FieldPanel('active'),
+        FieldPanel('gsky_active'),
         FieldPanel('sub_path'),
         FieldPanel('file_match'),
         FieldPanel('enable_time_series'),
